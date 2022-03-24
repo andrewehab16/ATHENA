@@ -1,11 +1,8 @@
-from fastapi import FastAPI, File, UploadFile
-import os
+from fastapi import FastAPI, File
 import json
 import requests
 from pydub import AudioSegment
-from fastapi.responses import FileResponse
 import io 
-import aiofiles
 
 app=FastAPI()
 class bufferedReader(io.BufferedReader):
@@ -14,9 +11,10 @@ class bufferedReader(io.BufferedReader):
     
 def speech_recognition(filee):
     url = "http://41.179.247.136:6000/inference"
-    #x=AudioSegment.from_wav(filee)
+    
     x=io.BytesIO(filee)
     y=bufferedReader(x)
+    print(y)
     
     
     
@@ -31,38 +29,23 @@ async def create_upload_file(file: bytes=File(...)):
     if not file:
         return {"message": "No upload file sent"}
     else:
-         #sound = AudioSegment.from_wav(file.file)
-
-         #channel_count = sound.duration_seconds  
+         
+          
+         audio = AudioSegment(file, sample_width=2, frame_rate=8000, channels=1 )
+         
+         raw_bytes=audio.raw_data
          
          
-         txt=speech_recognition(file)
+         txt=speech_recognition(raw_bytes)
 
-         #if "<fil> " in txt:
-            #txt = txt.replace("<fil> ", "")
+         if "<fil> " in txt:
+            txt = txt.replace("<fil> ", "")
 
-         #if "<music> " in txt:
-            # txt = txt.replace("<music> ", "")
+         if "<music> " in txt:
+             txt = txt.replace("<music> ", "")
 
-         #if "<laugh> " in txt:
-         #   txt = txt.replace("<laugh> ", "")
-    
-            
+         if "<laugh> " in txt:
+            txt = txt.replace("<laugh> ", "")
+       
          return txt
-@app.get("/transcribe-voice/{file_path}")
-def MCIT_api(file_path):
-    sound = AudioSegment.from_file(file_path)
 
-    channel_count = sound.channels    
-   # txt=speech_recognition(file_path)
-
-    #if "<fil> " in txt:
-            #txt = txt.replace("<fil> ", "")
-
-    #if "<music> " in txt:
-            #txt = txt.replace("<music> ", "")
-
-    #if "<laugh> " in txt:
-            #txt = txt.replace("<laugh> ", "")
-    
-    return channel_count
